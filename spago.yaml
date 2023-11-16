@@ -2,6 +2,7 @@ package:
   dependencies:
     - console
     - effect
+    - maybe
     - prelude
   name: presentation
   test:
