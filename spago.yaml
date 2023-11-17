@@ -3,6 +3,7 @@ package:
     - console
     - effect
     - maybe
+    - parsing
     - prelude
   name: presentation
   test:
