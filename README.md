@@ -245,66 +245,45 @@ Quite simple to use compared to something like Elm's port system.
 
 ### 4. Parsing with purescript parsing
 
-Open [Advent of Code 2020 day 7](https://adventofcode.com/2020/day/7).
+Open [Advent of Code 2020 day 2](https://adventofcode.com/2020/day/2).
 Copy & paste that example rule into a string constant.
 
 ```purs
 input :: String
-input = """light red bags contain 1 bright white bag, 2 muted yellow bags.
-dark orange bags contain 3 bright white bags, 4 muted yellow bags.
-bright white bags contain 1 shiny gold bag.
-muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.
-shiny gold bags contain 1 dark olive bag, 2 vibrant plum bags.
-dark olive bags contain 3 faded blue bags, 4 dotted black bags.
-vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.
-faded blue bags contain no other bags.
-dotted black bags contain no other bags.
+input = """1-3 a: abcde
+1-3 b: cdefg
+2-9 c: ccccccccc
 """
 ```
 
 Write the structured data type to model this.
 
 ```purs
-type Rule =
-  { container :: String
-  , content :: Array Content
-  }
-
-type Content =
-  { color :: String
-  , number :: Int
+type Password =
+  { min :: Int
+  , max :: Int
+  , char :: Char
+  , password :: String
   }
 ```
 
-We could use a stricter type for the color than String.
+We could use a stricter type for the password than String.
 I'm deciding to be lazy.
 
 Let's write a parser to parse this data.
 
 ```purs
-parseRule :: Parser String Rule
-parseRule = do
-  container <- parseColor
-  _ <- string "bags contain "
-  content <- many parseContent
-  pure { container, content }
-  where
-    parseColor = do
-      prefix <- parseString
-      color <- parseString
-      pure $ prefix <> " " <> color
-
-    parseContent = do
-      number <- intDecimal
-      _ <- space
-      color <- parseColor
-      _ <- string "bags" <|> string "bag"
-      _ <- string ", " <|> string "."
-      pure { color, number }
-
-    parseString = do
-      (Tuple s _) <- anyTill space
-      pure $ s
+parsePassword :: Parser String Password
+parsePassword = do
+  min <- intDecimal
+  _ <- char '-'
+  max <- intDecimal
+  _ <- space
+  char <- anyChar
+  _ <- string ": "
+  Tuple password _ <- (anyTill $ string "\n")
+  -- same as: password <- fst <$> (anyTill $ string "\n")
+  pure { min, max, char, password }
 ```
 
 Update the main-function to run this parser.
@@ -312,7 +291,7 @@ Update the main-function to run this parser.
 ```purs
 main :: Effect Unit
 main = do
-  let res = runParser input (parseRule `sepBy` (char '\n'))
+  let res = runParser input $ many parsePassword
   log $ show res
 ```
 
